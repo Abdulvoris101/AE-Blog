@@ -4,22 +4,22 @@ from .models import Post, Category
 from .serializers import PostSerializer, CategorySerializer
 from rest_framework.response import Response
 from rest_framework.status import *
+from rest_framework.generics import ListCreateAPIView
+from .permissions import IsOwnerOrReadOnly
+from rest_framework import permissions
 
-class PostListView(APIView):
-    def get(self, request, format=None):
-        posts = Post.objects.all()
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
+class PostListView(ListCreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
     
-    def post(self, request, format=None):
-        serilizer = PostSerializer(data=request.data)
-        if serilizer.is_valid():
-            serilizer.save()
-            return Response(serilizer.data, status=HTTP_201_CREATED)
-        return Response(serilizer.errors, status=HTTP_400_BAD_REQUEST)
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
 class PostDetailView(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsOwnerOrReadOnly]
+
     def get_object(self, slug):
         try:
             return Post.objects.get(slug=slug)
@@ -46,20 +46,14 @@ class PostDetailView(APIView):
         return Response(status=HTTP_204_NO_CONTENT)
 
 class CategoryListView(APIView):
-    def get(self, request, format=None):
-        categories = Category.objects.all()
-        serializer = CategorySerializer(categories, many=True)
-        return Response(serializer.data)
-    
-    def post(self, request, format=None):
-        serializer = CategorySerializer(data=request.data)
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=HTTP_201_CREATED)
-        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+    def perform_create(self, serializer):
+        serializer.save()
 
 class CategoryDetailView(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, permissions.IsAdminUser]
     def get_object(self, request, slug):
         try:
             Category.objects.get(slug=slug)

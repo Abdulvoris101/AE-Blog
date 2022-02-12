@@ -8,7 +8,7 @@ from django.contrib.admin.decorators import register
 class PostAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'update_at', 'author')
     list_display = ('id', 'title', )
-    prepopulated_fields = {'slug': ('title',)}
+    # prepopulated_fields = {'slug': ('title',)}
 
 
 admin.site.register(Category)
