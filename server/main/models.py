@@ -41,7 +41,7 @@ class Post(LifecycleModel):
     category = models.ForeignKey(Category, related_name='posts', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, default='Anonymous')
     
     def __str__(self):
         return self.title
