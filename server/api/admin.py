@@ -1,3 +1,13 @@
+from atexit import register
 from django.contrib import admin
+from .models import Post, Category
+from django.contrib.admin.decorators import register
 
-# Register your models here.
+
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'update_at', 'author')
+    prepopulated_fields = {'slug': ('title',)}
+
+
+admin.site.register(Category)
