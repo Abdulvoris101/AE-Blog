@@ -7,6 +7,7 @@ from django.contrib.admin.decorators import register
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'update_at', 'author')
+    list_display = ('id', 'title', )
     prepopulated_fields = {'slug': ('title',)}
 
 
