@@ -39,7 +39,7 @@ class Post(LifecycleModel):
     image = models.ImageField(upload_to='posts/', blank=True, default='no-image.jpg')
     slug = models.SlugField(unique=True, blank=True)
     content = models.TextField()
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, related_name='category', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey('auth.User', related_name='posts', on_delete=models.CASCADE)
