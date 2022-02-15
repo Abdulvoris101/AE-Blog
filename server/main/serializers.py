@@ -8,7 +8,7 @@ from rest_framework import serializers
 
 class PostSerializer(ModelSerializer, serializers.Serializer):
     author = ReadOnlyField(source='author.username')
-    
+
     class Meta:
         model = Post
         fields = ['id', 'title',  'content', 'created_at', 'get_absolute_url', 'slug', 'author', 'update_at', 'get_image', 'category']
@@ -37,7 +37,25 @@ class CategorySerializer(ModelSerializer):
     
 class UserSerializer(ModelSerializer):
     posts = PrimaryKeyRelatedField(many=True, read_only=True)
-
+    
+    
     class Meta:
         model = User
-        fields = ['id', 'username', 'posts']
+        fields = ['id', 'username', 'posts', 'first_name', 'email', 'password',]
+        read_only_fields = ('id', 'posts')
+        write_only_fields = ('password', )
+        extra_kwargs = {'first_name': {'required': True}} 
+        extra_kwargs = {'email': {'required': True}} 
+
+    
+    def create(self, validated_data):
+        user = User.objects.create(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            first_name=validated_data['first_name'],
+        )
+
+        user.set_password(validated_data['password'])
+        user.save()
+
+        return user
