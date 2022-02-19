@@ -10,16 +10,27 @@ from rest_framework import permissions, authentication
 from django.contrib.auth.models import User
 
 class PostListView(ListCreateAPIView):
-    queryset = Post.objects.all()
     serializer_class = PostSerializer
-    
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    def get_queryset(self):
+        queryset = Post.objects.all()
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category__slug=category)
+        
+            
+        return queryset
+    
+    
+
+
 
 class PostDetailView(RetrieveUpdateDestroyAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          IsOwnerOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly, permissions.IsAuthenticatedOrReadOnly]
     authentication_classes = [authentication.TokenAuthentication, authentication.BaseAuthentication]
     serializer_class = PostSerializer
     lookup_field = 'slug'

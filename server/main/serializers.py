@@ -31,9 +31,10 @@ class PostSerializer(ModelSerializer, serializers.Serializer):
 
 
 class CategorySerializer(ModelSerializer):
+    posts = PostSerializer(many=True, read_only=True)
     class Meta:
         model = Category
-        fields  = ['id', 'name', 'get_absolute_url', 'slug']
+        fields  = ['id', 'name', 'get_absolute_url', 'slug', 'posts']
     
 class UserSerializer(ModelSerializer):
     posts = PrimaryKeyRelatedField(many=True, read_only=True)
