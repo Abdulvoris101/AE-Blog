@@ -17,4 +17,9 @@ class PostAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
 
-admin.site.register(Like)
+
+@admin.register(Like)
+class LikeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'post', 'status')
+    list_display_links = ('user', 'post',)
+    list_editable = ('status', )

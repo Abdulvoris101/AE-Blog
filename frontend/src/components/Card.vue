@@ -19,40 +19,14 @@
                 
                         
                 <div class="card-reactions">
-                    <a href="#" @click="SubmitLike(id)" :id="id"  class="like-btn" >
-                        <div v-if="likes.length > 0">
-                            
-                            <div v-for="like in likes" :key="like.id">
-                                <div class="flex-center" v-if="like.user == 'admin'">
-                                    <span class="material-icons " :ref="'like' + id">
-                                        thumb_up_off_alt 
-                                    </span>
-                                    <span :ref="'likecnt' + id" class="mt-1">
-                                        7
-                                    </span>
-                                </div>
-
-                                <div class="flex-center" v-else>
-                                    <span class="material-icons" :ref="'like' + id">
-                                        thumb_up_off_alt 
-                                    </span>
-                                    <span class="mt-1" :ref="'likecnt' + id">
-                                        6
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex-center" v-else>
-                            <span class="material-icons" :ref="'like' + id">
-                                thumb_up_off_alt 
+                    <a  href="#" @click="SubmitLike(id)" :id="id" class="like-btn">
+                        <span class="material-icons" :ref="'like' + id" >thumb_up_off_alt</span>
+                        <span class="mt-1" :ref="'likecnt' + id">
+                            <span>
+                                {{ likesFiltered.length }}
                             </span>
-                            <span :ref="'likecnt' + id" class="mt-1">
-                                6
-                            </span>
-                        </div>
-                        
-
-                    </a>
+                        </span>
+                    </a>   
                     <a href="" class="like-btn comment-btn">
                         <span class="material-icons">
                             forum 
@@ -78,8 +52,14 @@ export default {
 
     data() {
         return {
-            msg: 'hello'
+            msg: 'hello',
+            likesFiltered: []
         }
+    },
+    created() {
+        this.likesFiltered = this.likes.filter(like => {
+            return like.status == 'Like'
+        })
     },
 
     methods: {
@@ -87,7 +67,7 @@ export default {
             let likedBtn = this.$refs['like' + id];
             let likedCnt = this.$refs['likecnt' + id];
             let likedCntInt = parseInt(likedCnt.innerHTML);
-
+            
             if (likedBtn.innerHTML  == 'thumb_up_alt') {
                 likedBtn.innerHTML = 'thumb_up_off_alt'
                 likedCnt.innerHTML = likedCntInt - 1
@@ -97,6 +77,7 @@ export default {
             }
         }
     },
+
 }
 </script>
 
