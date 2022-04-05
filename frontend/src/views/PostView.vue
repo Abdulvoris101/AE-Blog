@@ -1,43 +1,105 @@
 <template>
     <div id="post-view">
-        <div class="container">
+        <div class="blog-view">
             <main class="blog-detail">
-                <h1>{{ post.title }}</h1>
+                <div class="blog-header">
+                    <h1>{{ post.title }}</h1>
+                    <div class="blog-edits">
+                        
+                    </div>
+                </div>
                 <figure class="blog-detail-img">
-                    <img :src="post.image" width="900" height="600" alt="">
+                    <img :src="post.image"  alt="">
                 </figure>
+                <div class="blog-content">
+                    <p>
+                        {{ post.content }}
+                    </p>
+                </div>
             </main>
-            
+            <sidebar class="blog-sidebar">
+                <div class="container">
+                    
+                    <div class="posts" v-if="posts.length > 0">
+                        <h4>Latest Posts</h4>
+                        <article class="blog-content-card"  v-for="post in posts" :key="post.id">
+                            <div class="img-content">
+                                <router-link :to="{ name: 'postView', params: { slug: post.slug } }" >
+                                    <img :src="post.get_thumbnail" width="100" alt="">
+                                </router-link>
+                            </div>
+                            <router-link :to="{ name: 'postView', params: { slug: post.slug } }" class="link-more-posts">
+                                <div class="text-content">
+                                    {{ post.title }}
+                                    <div class="content">
+                                        {{ post.content }}
+                                    </div>
+                                </div>
+                            </router-link>
+                            
+                        </article>
+                    </div>
+                    <div class="no-posts" v-else>
+                        <h4>No Posts</h4>
+                        <h5>Sorry no posts in the platform</h5>
+                    </div>
+
+                    
+                </div>
+            </sidebar>
         </div>
     </div>
 </template>
 
 <script>
 import axios from 'axios'
+
 export default {
     name: 'PostView',
     data() {
         return {
             post: null,
-            slug: this.$route.params.slug
+            slug: this.$route.params.slug,
+            posts: []
         }
     },
     created() {
-        this.get_post()
+        this.get_post(this.slug)
+        this.get_all_post()
     },
     methods: {
-        async get_post() {
+        async get_post(slug) {
             try{
-                const post = await axios.get(`http://localhost:8000/api/v1/post/${this.slug}`);
+                const post = await axios.get(`http://localhost:8000/api/v1/post/${slug}`);
                 if (post) {
                     this.post = post.data;
                 }
-
             } catch(error) {
                console.error(error);
             }
+        },
+        async get_all_post() {
+            try {
+                const posts = await axios.get(`http://localhost:8000/api/v1/posts/`);
+                if (posts) {
+                    this.posts = posts.data;
+
+                    this.posts = this.posts.filter(post => {
+                        return post.slug != this.post.slug
+                    })
+                }
+            } catch(error) {
+                console.log(error)
+            }
         }
-    }
+    },
+    watch: {
+        $route(to) {
+            this.get_post(to.params.slug)
+
+            this.get_all_post()
+        }
+  }
 }
 </script>
 
@@ -45,4 +107,47 @@ export default {
 #post-view {
     color:#fff;
 }
+.blog-view {
+    display:flex;
+
+    .blog-detail {
+        width: 70%;
+    }
+    .blog-sidebar {
+        width:30%;
+    }
+    
+}
+.blog-detail-img img{
+    width:100%;
+}
+.blog-sidebar {
+    margin-top: 10px;
+    margin-left: 20px;
+}
+.blog-content-card {
+    display:flex;
+    align-items: flex-start;
+    border-bottom: 1px solid rgb(116, 116, 116);
+    padding-bottom: 10px;
+    padding-top: 10px;
+    .text-content {
+        padding: 0px 5px;
+    }
+    .content {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-height: 1.2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+
+        font-size: 14.5px;
+        color: #f2f2ff;
+    }
+    .link-more-posts {
+        color:#fff;
+        text-decoration: none;
+    }
+}   
+
 </style>

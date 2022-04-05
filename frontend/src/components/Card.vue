@@ -10,8 +10,6 @@
                 <router-link :to="{ name: 'postView', params: { slug: slug } }">
                     {{ title }}
                 </router-link>
-                
-                
             </h4>
             <p class="card-content line-height-2 text-600"> {{ content }} </p>
             
@@ -50,6 +48,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
     name: 'Card',
     props: ['title', 'get_thumbnail', 'author', 'date', 'content', 'slug', 'id', 'likes', 'getPosts'],
@@ -63,19 +63,22 @@ export default {
         }
     },
     created() {
-        fetch('http://127.0.0.1:8000/user/info/', {
-            headers: { Authorization: 'Token f9c1cad1e2b49d9b4ec41ca1107bfd67d0c7b090' },
-            credentials: "same-origin",
+        axios.get('http://127.0.0.1:8000/user/info/', {
+            headers: {
+                Authorization: 'Token f9c1cad1e2b49d9b4ec41ca1107bfd67d0c7b090'
+            }
         })
-        .then(response => response.json())
-        .then(commits => this.likedUser(commits));
-        
+        .then(response => this.likedUser(response))
+        .catch(function (error) {
+            console.log(error);
+        })
+
     },
     methods: {
         likedUser(myuser) {
-            this.myuser = myuser
+            this.myuser = myuser.data
             this.likesFiltered = this.likes.filter(like => {
-                if (like.user == myuser.username && like.status == 'Like') {
+                if (like.user == myuser.data.username && like.status == 'Like') {
                     let likedBtn = this.$refs['like' + like.post];
                     likedBtn.innerHTML = 'thumb_up_alt'
                 }
@@ -97,11 +100,14 @@ export default {
             }
 
             let url = `http://127.0.0.1:8000/api/v1/like/${id}/`
-            fetch(url, {
-                headers: { Authorization: 'Token f9c1cad1e2b49d9b4ec41ca1107bfd67d0c7b090' }
+
+            axios.get(url, {
+                headers: {
+                  Authorization: 'Token f9c1cad1e2b49d9b4ec41ca1107bfd67d0c7b090'  
+                }
             })
-            .then(response => response.json())
-            .then(commits => console.log(commits));
+            .then(response => console.log(response))
+            .catch(error => console.log(error))
 
             
             
