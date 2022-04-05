@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from rest_framework.views import APIView
 from main.serializers import UserSerializer
 from rest_framework.response import Response
@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authtoken.models import Token
 from django.core.exceptions import ObjectDoesNotExist
+import json
 
 class CreateUserView(APIView):
     def post(self, request, format='json'):
@@ -36,6 +37,7 @@ class LoginUserView(APIView):
 
         user = User.objects.filter(username=username).first()
         print(user)
+
         if user is None:
             raise AuthenticationFailed('Foydalanuvchi topilmadi!')
 
@@ -43,7 +45,7 @@ class LoginUserView(APIView):
             raise AuthenticationFailed('Parol Noto\'gri!')
         
         value = request.COOKIES.get('token')
-        token = Token.objects.get(user=user)
+        token = get_object_or_404(Token, user=user)
         response = Response()
 
         if value is None:
@@ -67,20 +69,22 @@ class UserView(APIView):
             raise AuthenticationFailed('Unauthenticated') 
         try:
             user = Token.objects.get(key=token).user
+
         except ObjectDoesNotExist:
             raise AuthenticationFailed('Unauthenticated')
 
         serializer = UserSerializer(user)
 
-        print(user)
-
         return Response(serializer.data)
 
 class LogoutView(APIView):
-    def post(self, request):
+    def get(self, request):
         response = Response()
         response.delete_cookie('token')
+
         response.data = {
             'message': 'success',
             'deleted': True
         }
+
+        return response

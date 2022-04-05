@@ -1,17 +1,27 @@
-from enum import unique
 from rest_framework.serializers import ModelSerializer, ReadOnlyField, PrimaryKeyRelatedField
-from .models import Category, Post
+from .models import Category, Post, Like
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
 from .utils import get_random_code
 from rest_framework import serializers
 
-class PostSerializer(ModelSerializer, serializers.Serializer):
-    author = ReadOnlyField(source='author.username')
+
+class LikeSerializer(ModelSerializer):
+    user = ReadOnlyField(source='user.username')
 
     class Meta:
-        model = Post
-        fields = ['id', 'title',  'content', 'created_at', 'get_absolute_url', 'slug', 'author', 'update_at', 'get_image', 'category']
+        model = Like
+        fields  = ['id', 'user', 'post', 'status']
+
+class PostSerializer(ModelSerializer, serializers.Serializer):
+    author = ReadOnlyField(source='author.username')
+    likes = LikeSerializer(source='postlikes', many=True)
+
+
+
+    class Meta:
+        model = Post    
+        fields = ['id', 'title', 'content', 'likes', 'created_at', 'get_thumbnail', 'get_absolute_url', 'slug', 'author', 'update_at', 'image', 'category']
         
     def create(self, validated_data):
         if not validated_data['slug']:
@@ -27,22 +37,27 @@ class PostSerializer(ModelSerializer, serializers.Serializer):
 
         return Post.objects.create(**validated_data)
 
-
+    def to_representation(self, instance):
+        representation = super(PostSerializer, self).to_representation(instance)
+        representation['created_at'] = instance.created_at.strftime('%d %a %H:%M')
+        return representation
 
 
 class CategorySerializer(ModelSerializer):
     posts = PostSerializer(many=True, read_only=True)
+    
     class Meta:
         model = Category
         fields  = ['id', 'name', 'get_absolute_url', 'slug', 'posts']
-    
+
+
 class UserSerializer(ModelSerializer):
     posts = PrimaryKeyRelatedField(many=True, read_only=True)
-    
+    userlikes = PrimaryKeyRelatedField(many=True, read_only=True)
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'posts', 'first_name', 'email', 'password',]
+        fields = ['id', 'username', 'posts', 'first_name', 'email', 'password', 'userlikes']
         read_only_fields = ('id', 'posts')
         write_only_fields = ('password', )
         extra_kwargs = {'first_name': {'required': True}} 
@@ -60,3 +75,4 @@ class UserSerializer(ModelSerializer):
         user.save()
 
         return user
+

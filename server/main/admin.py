@@ -1,6 +1,6 @@
 from atexit import register
 from django.contrib import admin
-from .models import Post, Category
+from .models import Post, Category, Like
 from django.contrib.admin.decorators import register
 
 
@@ -17,3 +17,4 @@ class PostAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
 
+admin.site.register(Like)
