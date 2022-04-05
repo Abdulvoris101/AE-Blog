@@ -8,6 +8,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authtoken.models import Token
 from django.core.exceptions import ObjectDoesNotExist
 import json
+from rest_framework import permissions, authentication
 
 class CreateUserView(APIView):
     def post(self, request, format='json'):
@@ -36,7 +37,6 @@ class LoginUserView(APIView):
         password = request.data['password']
 
         user = User.objects.filter(username=username).first()
-        print(user)
 
         if user is None:
             raise AuthenticationFailed('Foydalanuvchi topilmadi!')
@@ -62,13 +62,18 @@ class LoginUserView(APIView):
 
         
 class UserView(APIView):
-    def get(self, request):
-        token = request.COOKIES.get('token')
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    authentication_classes = [authentication.TokenAuthentication]
 
+    def get(self, request):
+        token = request.headers.get('Authorization')
+        token_str = str(token)
+        token_str = token_str.replace('Token', '').strip()
+        
         if not token:
-            raise AuthenticationFailed('Unauthenticated') 
+            raise AuthenticationFailed('Unauthenticated Token') 
         try:
-            user = Token.objects.get(key=token).user
+            user = Token.objects.get(key=token_str).user
 
         except ObjectDoesNotExist:
             raise AuthenticationFailed('Unauthenticated')

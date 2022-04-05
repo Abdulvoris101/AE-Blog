@@ -1,6 +1,14 @@
 <template>
     <div id="post-view">
-        {{ post.title }}
+        <div class="container">
+            <main class="blog-detail">
+                <h1>{{ post.title }}</h1>
+                <figure class="blog-detail-img">
+                    <img :src="post.image" width="900" height="600" alt="">
+                </figure>
+            </main>
+            
+        </div>
     </div>
 </template>
 
@@ -32,3 +40,9 @@ export default {
     }
 }
 </script>
+
+<style lang="scss" scoped>
+#post-view {
+    color:#fff;
+}
+</style>

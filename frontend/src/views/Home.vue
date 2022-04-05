@@ -37,6 +37,7 @@
                 :slug="post.slug"
                 :id="post.id"
                 :likes="post.likes"
+                :getPosts="getPosts"
                 />
             </div>
         </div>
@@ -64,19 +65,16 @@ export default {
     },
     created() {
         this.getPosts()
-        
     },
     methods: {
         async getPosts() {
-           try{
-
+            try{
                 const res = await axios.get('http://localhost:8000/api/v1/posts/');
                 this.posts = res.data;
                 this.filteredPosts = res.data;
-
-           } catch(error) {
-               console.error(error);
-           }
+            } catch(error) {
+                console.error(error);
+            }
         },
 
         

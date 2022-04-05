@@ -1,5 +1,5 @@
 <template>
-    <div class="blog-card bg-gray-700">
+    <div class="blog-card bg-gray-700"> 
         <div class="card-img">
              <router-link :to="{ name: 'postView', params: { slug: slug } }">
                 <img :src="get_thumbnail" alt="">
@@ -10,7 +10,7 @@
                 <router-link :to="{ name: 'postView', params: { slug: slug } }">
                     {{ title }}
                 </router-link>
-
+                
                 
             </h4>
             <p class="card-content line-height-2 text-600"> {{ content }} </p>
@@ -20,9 +20,13 @@
                         
                 <div class="card-reactions">
                     <a  href="#" @click="SubmitLike(id)" :id="id" class="like-btn">
-                        <span class="material-icons" :ref="'like' + id" >thumb_up_off_alt</span>
-                        <span class="mt-1" :ref="'likecnt' + id">
-                            <span>
+                        
+                        <span class="material-icons" :ref="'like' + id" >
+                            thumb_up_off_alt
+                        </span>
+
+                        <span class="mt-1" >
+                            <span :ref="'likecnt' + id">
                                 {{ likesFiltered.length }}
                             </span>
                         </span>
@@ -48,26 +52,42 @@
 <script>
 export default {
     name: 'Card',
-    props: ['title', 'get_thumbnail', 'author', 'date', 'content', 'slug', 'id', 'likes'],
+    props: ['title', 'get_thumbnail', 'author', 'date', 'content', 'slug', 'id', 'likes', 'getPosts'],
 
     data() {
         return {
             msg: 'hello',
-            likesFiltered: []
+            likesFiltered: [],
+            myuser: []
+            
         }
     },
     created() {
-        this.likesFiltered = this.likes.filter(like => {
-            return like.status == 'Like'
+        fetch('http://127.0.0.1:8000/user/info/', {
+            headers: { Authorization: 'Token f9c1cad1e2b49d9b4ec41ca1107bfd67d0c7b090' },
+            credentials: "same-origin",
         })
+        .then(response => response.json())
+        .then(commits => this.likedUser(commits));
+        
     },
-
     methods: {
+        likedUser(myuser) {
+            this.myuser = myuser
+            this.likesFiltered = this.likes.filter(like => {
+                if (like.user == myuser.username && like.status == 'Like') {
+                    let likedBtn = this.$refs['like' + like.post];
+                    likedBtn.innerHTML = 'thumb_up_alt'
+                }
+                return like.status == 'Like' 
+            })
+        },
         SubmitLike(id) {
             let likedBtn = this.$refs['like' + id];
             let likedCnt = this.$refs['likecnt' + id];
             let likedCntInt = parseInt(likedCnt.innerHTML);
             
+
             if (likedBtn.innerHTML  == 'thumb_up_alt') {
                 likedBtn.innerHTML = 'thumb_up_off_alt'
                 likedCnt.innerHTML = likedCntInt - 1
@@ -75,6 +95,16 @@ export default {
                 likedBtn.innerHTML = 'thumb_up_alt'
                 likedCnt.innerHTML = likedCntInt + 1
             }
+
+            let url = `http://127.0.0.1:8000/api/v1/like/${id}/`
+            fetch(url, {
+                headers: { Authorization: 'Token f9c1cad1e2b49d9b4ec41ca1107bfd67d0c7b090' }
+            })
+            .then(response => response.json())
+            .then(commits => console.log(commits));
+
+            
+            
         }
     },
 

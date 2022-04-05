@@ -8,7 +8,7 @@ from rest_framework.generics import ListCreateAPIView, ListAPIView, RetrieveUpda
 from .permissions import IsOwnerOrReadOnly
 from rest_framework import permissions, authentication
 from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404\
+from django.shortcuts import get_object_or_404
 
 
 class PostListView(ListCreateAPIView):
@@ -48,8 +48,8 @@ class CategoryDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
 
 class LikePostView(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, permissions.IsAdminUser]
-    authentication = [authentication.TokenAuthentication, authentication.BaseAuthentication]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    authentication_classes = [authentication.TokenAuthentication, authentication.BaseAuthentication]
 
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
