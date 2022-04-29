@@ -1,5 +1,5 @@
-from rest_framework.serializers import ModelSerializer, ReadOnlyField, PrimaryKeyRelatedField
-from .models import Category, Post, Like
+from rest_framework.serializers import ModelSerializer, ReadOnlyField, PrimaryKeyRelatedField, SlugRelatedField, StringRelatedField
+from .models import Language, Post, Like, Theme
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
 from .utils import get_random_code
@@ -15,13 +15,14 @@ class LikeSerializer(ModelSerializer):
 
 class PostSerializer(ModelSerializer, serializers.Serializer):
     author = ReadOnlyField(source='author.username')
+    theme = StringRelatedField()
+    language = StringRelatedField()
     likes = LikeSerializer(source='postlikes', many=True)
-
 
 
     class Meta:
         model = Post    
-        fields = ['id', 'title', 'content', 'likes', 'created_at', 'get_thumbnail', 'get_absolute_url', 'slug', 'author', 'update_at', 'image', 'category']
+        fields = ['id', 'title', 'content', 'likes', 'num_likes', 'theme', 'created_at', 'get_thumbnail', 'get_absolute_url', 'slug', 'author', 'update_at', 'image', 'language']
         
     def create(self, validated_data):
         if not validated_data['slug']:
@@ -43,17 +44,25 @@ class PostSerializer(ModelSerializer, serializers.Serializer):
         return representation
 
 
-class CategorySerializer(ModelSerializer):
+class LanguageSerializer(ModelSerializer):
     posts = PostSerializer(many=True, read_only=True)
     
     class Meta:
-        model = Category
+        model = Language
         fields  = ['id', 'name', 'get_absolute_url', 'slug', 'posts']
 
+
+class ThemeSerializer(ModelSerializer):
+    theme = SlugRelatedField(many=True, read_only=True, slug_field='slug')
+
+    class Meta:
+        model = Theme
+        fields = ['id', 'name', 'slug', 'theme']
 
 class UserSerializer(ModelSerializer):
     posts = PrimaryKeyRelatedField(many=True, read_only=True)
     userlikes = PrimaryKeyRelatedField(many=True, read_only=True)
+    
     
     class Meta:
         model = User

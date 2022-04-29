@@ -1,9 +1,12 @@
 <template>
     <div class="blog-card bg-gray-700"> 
         <div class="card-img">
-             <router-link :to="{ name: 'postView', params: { slug: slug } }">
-                <img :src="get_thumbnail" alt="">
+             <router-link :to="{ name: 'postView', params: { slug: slug } }" class="router-link-img">   
+                <figure :style="{ backgroundImage: 'url(' + get_thumbnail + ')' }" class="card-image-bg">
+
+                </figure>
             </router-link>
+            
         </div>
         <div class="card-main">
             <h4 class="card-title">
@@ -125,9 +128,16 @@ export default {
     border-radius: 7px;
     color: #fff;
     height: 180px;
-    img {
+    .router-link-img {
+        width: 100%;
+        display: flex;
+    }
+    figure {
         width: 100%;
         height: 100%;
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
     }
     .card-main {
         padding: 25px;
@@ -143,7 +153,7 @@ export default {
     .card-content {
         font-size: 14px;
         display: -webkit-box;
-        -webkit-line-clamp: 4;
+        -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
@@ -154,15 +164,20 @@ export default {
     }
     .card-date {
         i {
-            font-size: 12px;
+            font-size: 10px;
         }
     }
     .blog-card-footer {
         position:absolute;
-        bottom:12px;
+        bottom:15px;
+        align-items:center;
         display: flex;
         justify-content: space-between;
         width:40%;
+    }
+    .blog-card-footer p{
+        margin-top: 0;
+        margin-bottom: 4px;
     }
     .card-title {
         font-size: 19px;

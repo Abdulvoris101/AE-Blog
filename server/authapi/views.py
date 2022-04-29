@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404, render
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from main.serializers import UserSerializer
 from rest_framework.response import Response
 from rest_framework.status import *
@@ -60,6 +61,9 @@ class LoginUserView(APIView):
             
         return response
 
+class UserList(ListAPIView):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
         
 class UserView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -67,19 +71,21 @@ class UserView(APIView):
 
     def get(self, request):
         token = request.headers.get('Authorization')
+        token_cookie = request.COOKIES.get('token')
         token_str = str(token)
         token_str = token_str.replace('Token', '').strip()
-        
-        if not token:
-            raise AuthenticationFailed('Unauthenticated Token') 
-        try:
+
+
+        if token:
             user = Token.objects.get(key=token_str).user
-
-        except ObjectDoesNotExist:
+            serializer = UserSerializer(user)
+        elif token_cookie:
+            user = Token.objects.get(key=token_cookie).user
+            serializer = UserSerializer(user)
+        
+        else:
             raise AuthenticationFailed('Unauthenticated')
-
-        serializer = UserSerializer(user)
-
+        
         return Response(serializer.data)
 
 class LogoutView(APIView):

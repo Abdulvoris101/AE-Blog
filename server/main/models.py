@@ -8,7 +8,14 @@ from django_lifecycle import LifecycleModel, hook, BEFORE_SAVE, BEFORE_UPDATE
 from .utils import get_random_code
 from sorl.thumbnail import get_thumbnail
 
-class Category(LifecycleModel):
+class Theme(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(unique=True)
+
+    def __str__(self):
+        return self.name
+
+class Language(LifecycleModel):
     name = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(unique=True)
 
@@ -20,8 +27,8 @@ class Category(LifecycleModel):
     
     class Meta:
         ordering = ['-id']
-        verbose_name = 'Category'
-        verbose_name_plural = 'Categories'
+        verbose_name = 'Language'
+        verbose_name_plural = 'Languages'
     
 
     @hook(BEFORE_UPDATE, when='name', has_changed=True)
@@ -41,11 +48,12 @@ class Post(LifecycleModel):
     image = models.ImageField(upload_to='posts/', blank=True, default='no-image.jpg')
     slug = models.SlugField(unique=True, blank=True)
     content = models.TextField()
-    category = models.ForeignKey(Category, related_name='posts', on_delete=models.CASCADE)
+    language = models.ForeignKey(Language, related_name='posts', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey('auth.User', related_name='posts', on_delete=models.CASCADE)
     thumbnail = models.ImageField(upload_to="posts-thumbnail/", blank=True, null=True)
+    theme = models.ForeignKey(Theme, on_delete=models.CASCADE, related_name='theme')
 
     def __str__(self):
         return self.title
@@ -109,6 +117,10 @@ class Post(LifecycleModel):
         thumbnail = File(thumb_io, name=image.name)
 
         return thumbnail
+    
+    def num_likes(self):
+        post = Post.objects.get(pk=self.pk)
+        return 'post'
 
 LIKE_CHOISES = (
     ('Like', 'Like'),
@@ -122,3 +134,6 @@ class Like(models.Model):
 
     def __str__(self):
         return f'{self.user}-{self.post}'
+    
+    def get_post_likes(self):
+        return self.post

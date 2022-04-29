@@ -1,8 +1,43 @@
 <template>
     <div id="home">
+        <LoginView />
         <div class="post-filter mb-3">
             <div class="left-filter-items">
-               <Button label="Filter" class="p-button-secondary btn-filter" icon="pi pi-filter" iconPos="left"  />
+
+                <Button label="Filter" @click="postFilters" :class="{ 'btn-is-active' : activeFilter}" class="p-button-secondary btn-filter" icon="pi pi-filter" iconPos="left"  />
+               
+                <PrimeCard class="card-filter" :class="{'is-filter-active': activeFilter}">
+                    <template #title >
+                        <div class="filter-header">
+                            Filter Posts
+                            <button @click="applyFilter" v-if="activeApply" class=" button-filter-header">Apply</button>
+                            <button @click="applyFilter" v-else class="button-filter-header button-filter-disabled" disabled>Apply</button>
+                        </div>
+                    </template>
+                    <template #content class="primecard-content">
+                        <div class="programming-langs">
+                            <h6 class="d-flex sub-filter-title">
+                                <span class="material-icons code-icon">
+                                    code
+                                </span>
+                                Programming languages
+                            </h6>
+                            <button class="filterbtn" v-for="(language, index) in languages" :data-id="language.id" :data-slug="language.slug" :ref="'btn' + index" :key="language.id" @click="langToFilter(index)"> {{ language.name }}</button>
+                        </div>
+                        <div class="themes">
+                            <h6 class="sub-filter-title">
+                                 <span class="material-icons">
+                                    book
+                                </span>
+                                Themes
+                               
+                            </h6>
+                            <button class="filterbtn filterThemeBtn" v-for="(theme, index) in themes" :data-id="theme.id" :data-slug="theme.slug" :ref="'theme' + index" :key="theme.id" @click="themeToFilter(index)"> {{ theme.name }}</button>
+                        </div>
+                    </template>
+                </PrimeCard>
+
+
                <div class="ordering-filter ">
                     <button @click="changeActivity(1)"
                     class="new-posts-btn " 
@@ -20,12 +55,14 @@
                     <span>
                         <i class="pi-bolt pi"></i>
                     </span>
-                    Mashhurlari</button>
+                    Mashhurlari
+                    
+                    </button>
                </div>
             </div>
         </div>
-
-        <div class="grid">
+        <Spinner v-show="showSpinner" />
+            <div class="grid" v-if="showPost"> 
             <div class="col-6 col-sm-12" v-for="post in filteredPosts" :key="post.id">
                 
                 <Card 
@@ -40,6 +77,9 @@
                 :getPosts="getPosts"
                 />
             </div>
+         </div>
+        <div v-else>
+            <h2 class="text-white text-center">Sorry, No Posts.. </h2>
         </div>
     </div>
 </template>
@@ -49,22 +89,38 @@
 import Button from 'primevue/button';
 import axios from 'axios'
 import Card from '../components/Card' 
+import PrimeCard from 'primevue/card';
+import Spinner from '../components/Spinner';
+import LoginView from '../components/LoginView'
 
 export default {
     name: 'Home',
     components: {
         Card,
         Button,
+        PrimeCard,
+        Spinner,
+        LoginView
     },
     data() {
         return {
             posts: [],
             activeBtn: 1,
             filteredPosts: [],
+            activeFilter: false,
+            languages: [],
+            filterLang: [],
+            filterTheme: [],
+            themes: [],
+            activeApply: false,
+            showSpinner: true,
+            showPost: true,
         }
     },
     created() {
         this.getPosts()
+        this.getLangs()
+        this.getThemes()
     },
     methods: {
         async getPosts() {
@@ -72,8 +128,36 @@ export default {
                 const res = await axios.get('http://localhost:8000/api/v1/posts/');
                 this.posts = res.data;
                 this.filteredPosts = res.data;
+
             } catch(error) {
-                console.error(error);
+                console.log(error);
+            }
+        },
+        
+        async getLangs() {
+            try {
+                const res = await axios.get('http://localhost:8000/api/v1/languages/');
+                this.languages = res.data;
+            } catch (error) {
+                console.log(error)
+            }
+        },
+        async getThemes() {
+            try {
+                const res = await axios.get('http://localhost:8000/api/v1/themes/');
+                this.themes = res.data;
+            } catch (error) {
+                console.log(error)
+            }
+        },
+        async get_order_by(ordering) {
+            try{
+                const res = await axios.get(`http://localhost:8000/api/v1/posts/?order_by=${ordering}`)
+                this.posts = res.data;
+                this.filteredPosts = res.data;
+
+            } catch(error) {
+                console.log(error)
             }
         },
 
@@ -81,14 +165,106 @@ export default {
         changeActivity(id) {
            if (id == 2) {
                 this.activeBtn = 2
+                this.get_order_by('popular')
            } else {
                 this.activeBtn = 1
+                this.get_order_by('-created_at')
            }
         },
 
+        postFilters() {
+            this.activeFilter = !this.activeFilter
+        },
+        langToFilter(id) {
+            let item = this.$refs['btn' + id][0]
+
+            if ('filterbtn filterbtn-is-active' == item.classList.value) {
+                item.classList.value = 'filterbtn'
+                this.filterLang = this.filterLang.filter(e => e !== item.dataset.slug)
+
+            } else {
+                item.classList.value += ' filterbtn-is-active'
+                this.activeApply = true
+                this.filterLang.push(item.dataset.slug)
+            }
+            this.activeLang = !this.activeLang
+        },
+        
+        haveSomePosts() {
+            if (this.filteredPosts.length < 1) {
+                this.showPost = false
+            } else {
+                this.showPost = true
+            }
+        },
+        themeToFilter(id) {
+            let item = this.$refs['theme' + id][0]
+
+            if ('filterbtn filterThemeBtn filterbtn-is-active' == item.classList.value) {
+                item.classList.value = 'filterbtn filterThemeBtn'
+                this.filterTheme = this.filterTheme.filter(e => e !== item.dataset.slug)
+            } else {
+                item.classList.value += ' filterbtn-is-active'
+                this.activeApply = true
+                this.filterTheme.push(item.dataset.slug)
+            }
+            this.activeLang = !this.activeLang
+        },
+        applyFilter() {
+            if (this.filterLang.length >= 1) {
+                if (this.filterTheme.length >= 1) {
+                    axios.get(`http://localhost:8000/api/v1/posts?theme=${this.filterTheme.toString()}&language=${this.filterLang.toString()}`)
+                    .then(response => {
+                        this.filteredPosts = response.data;
+                        this.haveSomePosts()
+                        
+                        setTimeout(() => {
+                            this.activeFilter = false
+                        }, 50)
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    })
+                } else {
+                    axios.get(`http://localhost:8000/api/v1/posts?language=${this.filterLang.toString()}`)
+                    .then(response => {
+                        this.filteredPosts = response.data
+                        this.haveSomePosts()
+                        setTimeout(() => {
+                            this.activeFilter = false
+                        }, 50)
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    })
+                }
+            } else if (this.filterTheme.length >= 1) {
+                    axios.get(`http://localhost:8000/api/v1/posts?theme=${this.filterTheme.toString()}`)
+                    .then(response => {
+                        this.filteredPosts = response.data
+                        this.haveSomePosts()
+                        setTimeout(() => {
+                            this.activeFilter = false
+                        }, 50)
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    })
+            } else {
+                window.location.reload()
+            }
+        } 
 
     },
-   
+    watch: {
+        filteredPosts: {
+            handler(val) {
+                if (val.length >= 1) {
+                    this.showSpinner = false
+                }
+            }
+        }
+    }
     
 }
 </script>
@@ -110,10 +286,6 @@ export default {
         padding: 8px 19px !important;
 
     }
-    .btn-filter:hover {
-        background-color: #333 !important;
-    }
-
     .btn-filter:active {
         background-color: #222222 !important;
     }
@@ -155,5 +327,113 @@ export default {
     .pi-clock {
         transform: translateY(1px);
     }
-   
+    .card-filter {
+        visibility: hidden;
+        opacity: 0;
+        transition: visibility 0s, opacity .1s linear;
+        position: absolute;
+        z-index: 100;
+        width: 350px;
+        top: 150px;
+        
+    }
+    .card-filter .p-card-content {
+        height: 400px;
+        overflow-y: scroll;
+    }
+    .card-filter .p-card-content::-webkit-scrollbar {
+        width: 4px;
+    }
+    .card-filter .p-card-content::-webkit-scrollbar-track {
+        border-radius: 10px;
+    }
+        
+        /* Handle */
+    .card-filter .p-card-content::-webkit-scrollbar-thumb {
+        background: rgb(63, 63, 63); 
+        border-radius: 10px;
+    }
+
+    /* Handle on hover */
+    ::-webkit-scrollbar-thumb:hover {
+        background: #b30000; 
+    }
+
+   .p-card-content {
+       padding: 0 !important;
+   }
+
+   /* filter */
+
+   .filter-header {
+       display:flex;
+       justify-content: space-between;
+   }
+   .filterbtn {
+       padding: .3rem .7rem;
+       border: 1px solid #333;
+       background: #0d1212f1;
+       border-radius: 5px;
+       color:#fff;
+       outline: none;
+       margin-right: 5px;
+       margin-bottom: 10px;
+   }
+   .filterThemeBtn {
+       padding: .2rem .4rem;
+   }
+   .filterbtn:hover {
+       color: #2aa5a0;
+   }
+   .filterbtn-is-active {
+       background: #212828;
+       color: #2aa5a0;
+   }
+   /* icons */
+
+    .code-icon {
+        padding: 0;
+        padding-right: 3px;
+        padding-bottom: 3px;
+    }
+    .sub-filter-title .material-icons {
+        padding: 0;
+        padding-right: 3px;
+        padding-bottom: 3px;
+    }
+    .sub-filter-title {
+        display: flex;
+        align-items: center;
+
+    }
+    .button-filter-header {
+        padding: .1rem .5rem;
+        font-size: 17px !important;
+        border: 1px solid #333; 
+        background: #333;
+        color:rgb(224, 224, 224);
+        border-radius: 5px;
+        transition: all .1s linear;
+    }
+    .button-filter-disabled {
+        color:rgb(160, 159, 159);
+    }
+    
+    .button-filter-header:focus {
+        color: #f2f2ff;
+        border-color: rgb(114, 114, 114);
+        box-shadow: 0 0 0 0.20rem rgb(80, 80, 80);
+    }
+
+    .is-filter-active {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .bg-filter {
+        width: 100%;
+        height: 100vh;
+        position: absolute;
+        background: red;
+    }
 </style>

@@ -1,11 +1,12 @@
 <template>
     <div id="post-view">
         <div class="blog-view">
+            <Spinner :postview="true" v-show="showSpinner" />
             <main class="blog-detail">
                 <div class="blog-header">
                     <h1>{{ post.title }}</h1>
                     <div class="blog-edits">
-                        
+
                     </div>
                 </div>
                 <figure class="blog-detail-img">
@@ -22,6 +23,8 @@
                     
                     <div class="posts" v-if="posts.length > 0">
                         <h4>Latest Posts</h4>
+                        <Spinner :postright="true" v-show="showRightSpinner" />
+
                         <article class="blog-content-card"  v-for="post in posts" :key="post.id">
                             <div class="img-content">
                                 <router-link :to="{ name: 'postView', params: { slug: post.slug } }" >
@@ -52,20 +55,26 @@
 </template>
 
 <script>
-import axios from 'axios'
+import axios from 'axios';
+import Spinner from '@/components/Spinner.vue';
 
 export default {
     name: 'PostView',
+    components: {
+        Spinner
+    },
     data() {
         return {
-            post: null,
+            post: [],
             slug: this.$route.params.slug,
-            posts: []
+            posts: [],
+            showSpinner: true,
+            showRightSpinner: true
         }
     },
     created() {
         this.get_post(this.slug)
-        this.get_all_post()
+        this.get_last_posts()
     },
     methods: {
         async get_post(slug) {
@@ -78,12 +87,12 @@ export default {
                console.error(error);
             }
         },
-        async get_all_post() {
+        async get_last_posts() {
             try {
-                const posts = await axios.get(`http://localhost:8000/api/v1/posts/`);
+                const posts = await axios.get(`http://localhost:8000/api/v1/posts?last=7`);
                 if (posts) {
+                    this.showRightSpinner = false
                     this.posts = posts.data;
-
                     this.posts = this.posts.filter(post => {
                         return post.slug != this.post.slug
                     })
@@ -97,8 +106,13 @@ export default {
         $route(to) {
             this.get_post(to.params.slug)
 
-            this.get_all_post()
-        }
+            this.get_last_posts()
+        },
+        post(val) {
+            if (val.title) {
+                this.showSpinner = false
+            }
+        },
   }
 }
 </script>
@@ -127,7 +141,7 @@ export default {
 }
 .blog-content-card {
     display:flex;
-    align-items: flex-start;
+    align-items: center;
     border-bottom: 1px solid rgb(116, 116, 116);
     padding-bottom: 10px;
     padding-top: 10px;

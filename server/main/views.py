@@ -1,7 +1,8 @@
+from urllib import request
 from django.http import Http404
 from rest_framework.views import APIView
-from .models import Post, Category, Like
-from .serializers import PostSerializer, CategorySerializer, UserSerializer, LikeSerializer
+from .models import Post, Language, Like, Theme
+from .serializers import PostSerializer, LanguageSerializer, ThemeSerializer, UserSerializer, LikeSerializer
 from rest_framework.response import Response
 from rest_framework.status import *
 from rest_framework.generics import ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
@@ -9,20 +10,64 @@ from .permissions import IsOwnerOrReadOnly
 from rest_framework import permissions, authentication
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from django.db.models import Count, Q
 
 
 class PostListView(ListCreateAPIView):
     serializer_class = PostSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    queryset = Post.objects.all()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
     def get_queryset(self):
         queryset = Post.objects.all()
-        category = self.request.query_params.get('category')
-        if category:
-            queryset = queryset.filter(category__slug=category)
+        language = self.request.query_params.get('language')
+        order_by = self.request.query_params.get('order_by')
+        last_posts = self.request.query_params.get('last')
+        theme = self.request.query_params.get('theme')
+
+        if theme:
+            theme = str(theme).split(',')
+
+            if language:
+                language = str(language).split(',')
+                queryset = queryset.filter(Q(theme__slug__in=theme) | Q(language__slug__in=language))
+            else:
+                queryset = queryset.filter(theme__slug__in=theme)
+
+        elif language and order_by:
+            language = str(language).split(',')
+            queryset = queryset.filter(language__slug__in=language)
+
+            if order_by == 'popular':
+                pop_posts = queryset.annotate(num_likes=Count('postlikes', filter=Q(postlikes__status='Like')))
+                queryset = pop_posts.order_by('-num_likes')
+            else:
+                pop_posts = queryset.annotate(num_likes=Count('postlikes', filter=Q(postlikes__status='Like')))
+                queryset = pop_posts.order_by(order_by)
+
+        elif last_posts and language:
+            language = str(language).split(',')
+            queryset = queryset.filter(language__slug__in=language)[:int(last_posts)]
+            
+
+        elif language:
+            language = str(language).split(',')
+            queryset = queryset.filter(language__slug__in=language) 
+
+        elif order_by:
+            if order_by == 'popular':
+                pop_posts = queryset.annotate(num_likes=Count('postlikes', filter=Q(postlikes__status='Like')))
+                queryset = pop_posts.order_by('-num_likes')
+            else:
+                queryset = Post.objects.order_by(order_by)   
+
+
+        elif last_posts:
+            queryset = Post.objects.all()[:int(last_posts)]
         
         return queryset
     
@@ -34,29 +79,26 @@ class PostDetailView(RetrieveUpdateDestroyAPIView):
     lookup_field = 'slug'
     queryset = Post.objects.all()
 
-class CategoryListView(ListAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+class LanguageListView(ListAPIView):
+    queryset = Language.objects.all()
+    serializer_class = LanguageSerializer
 
 
-class CategoryDetailView(RetrieveUpdateDestroyAPIView):
+class LanguageDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, permissions.IsAdminUser]
     authentication = [authentication.TokenAuthentication, authentication.BaseAuthentication]
-
-    serializer_class = CategorySerializer
+    queryset = Language.objects.all()
+    serializer_class = LanguageSerializer
     lookup_field = 'slug'
-    queryset = Category.objects.all()
 
 class LikePostView(APIView):
+    authentication_classes = [authentication.BasicAuthentication, authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    authentication_classes = [authentication.TokenAuthentication, authentication.BaseAuthentication]
 
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
-        
-        
         try:
-            get_like = Like.objects.get(user=request.user, post=post)
+            get_like = Like.objects.get(post=post)
 
             if get_like.status == 'Like':
                 get_like.status = 'UnLike'
@@ -82,10 +124,24 @@ class LikePostView(APIView):
         except Like.DoesNotExist:
             like = Like.objects.create(user=request.user, post=post, status='Like')
 
-            return Response({
-                'status': 'Like',
-                'post_id': post.title
-            })
-            
+        return Response({
+            'status': 'Like',
+            'post_id': post.title
+        })
+
     
+class ThemeListView(APIView):
+    authentication_classes = [authentication.BasicAuthentication, authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+        themes = Theme.objects.all()
+        serializer = ThemeSerializer(themes, many=True)
+
+        return Response(serializer.data)
+
+
+
+
+
     

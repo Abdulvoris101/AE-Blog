@@ -1,9 +1,9 @@
 <template>
   <div id="sub-app">
     <LeftMenu />
-    <NavBar />
+    <NavBar :posts="posts" />
     <section class="container">
-      <router-view></router-view>
+      <router-view ></router-view>
     </section>
   </div>
 </template>
@@ -12,12 +12,34 @@
 import NavBar from './components/NavBar';
 // import Button from 'primevue/button';
 import LeftMenu from './components/LeftMenu';
+import axios from 'axios'
+
 
 export default {
   name: 'app',
   components: {
       NavBar,
       LeftMenu
+  },
+  data() {
+    return {
+      activeFilter: false,
+      posts: [],
+    }
+  },
+  created() {
+    this.getPosts()
+  },
+  methods: {
+    async getPosts() {
+        try{
+            const res = await axios.get('http://localhost:8000/api/v1/posts/');
+            this.posts = res.data;
+            this.filteredPosts = res.data;
+        } catch(error) {
+            console.log(error);
+        }
+    },
   }
 }
 </script>
