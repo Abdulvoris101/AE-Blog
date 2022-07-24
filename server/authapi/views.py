@@ -75,14 +75,12 @@ class UserView(APIView):
         token_str = str(token)
         token_str = token_str.replace('Token', '').strip()
 
-
         if token:
             user = Token.objects.get(key=token_str).user
             serializer = UserSerializer(user)
         elif token_cookie:
             user = Token.objects.get(key=token_cookie).user
             serializer = UserSerializer(user)
-        
         else:
             raise AuthenticationFailed('Unauthenticated')
         

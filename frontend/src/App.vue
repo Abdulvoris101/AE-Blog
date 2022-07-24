@@ -2,7 +2,7 @@
   <div id="sub-app">
     <LeftMenu />
     <NavBar :posts="posts" />
-    <section class="container">
+    <section >
       <router-view ></router-view>
     </section>
   </div>

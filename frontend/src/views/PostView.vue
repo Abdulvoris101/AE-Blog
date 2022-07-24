@@ -1,5 +1,5 @@
 <template>
-    <div id="post-view">
+    <div id="post-view" class="container">
         <div class="blog-view">
             <Spinner :postview="true" v-show="showSpinner" />
             <main class="blog-detail">

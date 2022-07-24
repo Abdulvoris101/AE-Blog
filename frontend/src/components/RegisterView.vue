@@ -1,22 +1,20 @@
 <template>
-    <div id="login" >
+    <div id="register">
         <div class="container">
-           <form @submit.prevent="submitLoginForm">
-                <h3>Login Here</h3>
+           <form>
+                <h3>Register Here</h3>
 
-                <label for="username" >Username</label>
-                <input type="text" placeholder="Username" v-model="username" id="username">
+                <label for="username">Username</label>
+                <input type="text" placeholder="Username" id="username">
+
+                <label for="email">Email</label>
+                <input type="text" placeholder="Email " id="username">
 
                 <label for="password">Password</label>
-                <input type="password" placeholder="Password" v-model="password" id="password">
-                <ul class="errors-list">
-                      <li class="error" v-for="(error, index) in errors" :key="index">
-                        {{ error }}
-                      </li>
-                </ul>
+                <input type="password" placeholder="Password" id="password">
                 <div class="buttons">
                     <button class="blob-btn">
-                        Login
+                        Register
                         <span class="blob-btn__inner">
                         <span class="blob-btn__blobs">
                             <span class="blob-btn__blob"></span>
@@ -26,13 +24,9 @@
                         </span>
                         </span>
                     </button>
-                    
-                    <br/>
-                    
-                    
                     <br>
-                    <a href="#" @click="changeLoginStatus" class="login-to-register">
-                      Sizda xali xisob yoqmi? Registratsiya
+                    <a href="#" @click="changeLoginStatus" class="register-to-login">
+                      Sizda  xisob bormi? Login
                     </a>
                     <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
                     <defs>
@@ -53,50 +47,19 @@
 </template>
 
 <script>
-import axios from 'axios'
-import { mapActions, mapMutations } from 'vuex'
 
 export default {
     name: 'Login',
     data() {
         return {
-          username: '',
-          password: '',
-          userToken: '',
-          errors: []
+
         }
     },
     methods: {
-      ...mapActions({
-        getUser: 'get_user_info'
-      }),
-      ...mapMutations({
-        isUserSet: 'SET_IS_USER'
-      }),
       changeLoginStatus() {
-            this.$store.state.registerStatus = true
-            this.$store.state.loginStatus = false
+            this.$store.state.registerStatus = false
+            this.$store.state.loginStatus = true
       },
-      submitLoginForm() {
-          axios.post('http://localhost:8000/user/login/', {
-              username: this.username,
-              password: this.password,
-          })
-          .then(response => {
-            if (response.data.token) {
-              this.userToken = response.data.token
-              localStorage.setItem('userToken', response.data.token)
-              this.getUser()
-              this.$store.state.loginStatus = false
-              this.isUserSet(true)
-            }
-          })
-          .catch(error => {
-            this.errors = []
-            this.errors.push(error.response.data.detail)
-            console.log(this.errors);
-          });  
-      }
     }
 
 }
@@ -119,12 +82,14 @@ body{
     background-color: #080710;
 }
 
-.login-to-register {
+.register-to-login {
+  padding-top: 12px;
+  display: block;
   font-size: 13px;
   color: #f0f0f0;
   text-decoration: none;
 }
-.login-to-register:hover {
+.register-to-login:hover {
   color: #fff;
 
   text-decoration: underline;
@@ -173,8 +138,7 @@ form{
     border-radius: 10px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.1);
-
-    padding: 35px 35px;
+    padding: 20px 35px;
 }
 form *{
     font-family: 'Poppins',sans-serif;
@@ -192,13 +156,13 @@ form h3{
 
 label{
     display: block;
-    margin-top: 23px;
-    font-size: 16px;
+    margin-top: 18px;
+    font-size: 13px;
     font-weight: 500;
 }
 input{
     display: block;
-    height: 50px;
+    height: 43px;
     width: 100%;
     background-color: rgba(255,255,255,0.07);
     border-radius: 3px;
@@ -246,126 +210,114 @@ input{
 
 
 .blob-btn {
-  margin-top: 30px;
-  width: 100%;
-  background-color: #ffffff;
-  color: #080710;
-  padding: 15px 0;
-  font-weight: 600;
-  border-radius: 5px;
-  $numOfBlobs: 4;
-  z-index: 1;
-  position: relative;
-  text-align: center;
-  text-transform: uppercase;
-  color: rgb(26, 26, 26);
-  font-size: 18px;
-  background-color: transparent;
-  outline: none;
-  border: none;
-  transition: color 0.5s;
-  cursor: pointer;
-
-&:before {
-  content: "";
-  z-index: 1;
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  border: $borderW solid #ccc;
-  border-radius:30px;
-}
-
-&:after {
-  content: "";
-  z-index: -2;
-  position: absolute;
-  left: $borderW*1.5;
-  top: $borderW*1.5;
-  width: 100%;
-  height: 100%;
-
-  transition: all 0.3s 0.2s;
-  border-radius:30px;
-}
-
-&:hover {
-  color: $dark;
-  border-radius:30px;
+    margin-top: 25px;
+    width: 100%;
+    background-color: #ffffff;
+    color: #080710;
+    padding: 15px 0;
+    font-weight: 600;
+    border-radius: 5px;
+    $numOfBlobs: 4;
+    z-index: 1;
+    position: relative;
+    text-align: center;
+    text-transform: uppercase;
+    color: rgb(26, 26, 26);
+    font-size: 18px;
+    background-color: transparent;
+    outline: none;
+    border: none;
+    transition: color 0.5s;
+    cursor: pointer;
+  
   &:before {
-      border-color: $btncolor;
-  }
-  &:after {
-    transition: all 0.3s;
+    content: "";
+    z-index: 1;
+    position: absolute;
     left: 0;
     top: 0;
+    width: 100%;
+    height: 100%;
+    border: $borderW solid #ccc;
     border-radius:30px;
   }
-}
-
-&__inner {
-  z-index: -1;
-  overflow: hidden;
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  border-radius:30px;
-  background:#ffffff;
-}
-
-// additional container created, because in FF blobs are breaking overflow:hidden of element with svg gooey filter
-&__blobs {
-  position: relative;
-  display: block;
-  height: 100%;
-  filter: url('#goo');
-}
-
-&__blob {
-  position: absolute;
-  top: $borderW;
-  width: 100% / $numOfBlobs;
-  height: 100%;
-  background: $btncolor;
-  border-radius: 100%;
-  transform: translate3d(0,150%,0) scale(1.7);
-  transition: transform 0.45s;
   
-  @supports(filter: url('#goo')) {
-    transform: translate3d(0,150%,0) scale(1.4);
+  &:after {
+    content: "";
+    z-index: -2;
+    position: absolute;
+    left: $borderW*1.5;
+    top: $borderW*1.5;
+    width: 100%;
+    height: 100%;
+
+    transition: all 0.3s 0.2s;
+    border-radius:30px;
   }
   
-  @for $i from 1 through $numOfBlobs {
-    &:nth-child(#{$i}) {
-      left: ($i - 1) * (120% / $numOfBlobs);
-      transition-delay: ($i - 1) * 0.08s;
+  &:hover {
+    color: $dark;
+    border-radius:30px;
+    &:before {
+        border-color: $btncolor;
+    }
+    &:after {
+      transition: all 0.3s;
+      left: 0;
+      top: 0;
+      border-radius:30px;
     }
   }
   
-  .blob-btn:hover & {
-    transform: translateZ(0) scale(1.7);
+  &__inner {
+    z-index: -1;
+    overflow: hidden;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius:30px;
+    background:#ffffff;
+  }
+  
+  // additional container created, because in FF blobs are breaking overflow:hidden of element with svg gooey filter
+  &__blobs {
+    position: relative;
+    display: block;
+    height: 100%;
+    filter: url('#goo');
+  }
+  
+  &__blob {
+    position: absolute;
+    top: $borderW;
+    width: 100% / $numOfBlobs;
+    height: 100%;
+    background: $btncolor;
+    border-radius: 100%;
+    transform: translate3d(0,150%,0) scale(1.7);
+    transition: transform 0.45s;
     
     @supports(filter: url('#goo')) {
-      transform: translateZ(0) scale(1.4);
+      transform: translate3d(0,150%,0) scale(1.4);
+    }
+    
+    @for $i from 1 through $numOfBlobs {
+      &:nth-child(#{$i}) {
+        left: ($i - 1) * (120% / $numOfBlobs);
+        transition-delay: ($i - 1) * 0.08s;
+      }
+    }
+    
+    .blob-btn:hover & {
+      transform: translateZ(0) scale(1.7);
+      
+      @supports(filter: url('#goo')) {
+        transform: translateZ(0) scale(1.4);
+      }
     }
   }
+  
 }
-
-// error
-
-
-}
-
-.errors-list li {
-  list-style: none;
-  padding-top: 15px;
-  color: rgb(255, 191, 191);
-  font-size: 13px;
-}
-    
-
 </style>

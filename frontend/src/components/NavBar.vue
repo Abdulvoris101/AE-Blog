@@ -1,7 +1,7 @@
 <template>
-    <nav class="nav mb-3 bg-gray-800">
+    <nav class="nav bg-gray-800">
         
-        <div class="bg-navbar" v-if="isSearchVisible" @click="isSearchVisible = false,  searchValue = '' ">
+        <div class="bg-navbar" v-if="search.isSearchVisible" @click="search.isSearchVisible = false,  search.searchValue = '' ">
 
         </div>
        <div class="container">
@@ -15,13 +15,13 @@
 
                     <li class="search-form">
                         <div class="search-input-block">
-                            <input type="text" placeholder="Qidirish.." v-model="searchValue" @input="searchFunc">
+                            <input type="text" placeholder="Qidirish.." v-model="search.searchValue" @input="searchFunc">
                             <a href="">
                                 <i class="pi pi-search"></i>
                             </a>
                         </div>
-                        <div class="card search-card" v-show="isSearchVisible">
-                            <router-link :to="{name: 'postView', params: {slug: post.slug} }" @click="isSearchVisible = false, searchValue = '' "  v-for="post in myposts" :key="post.id">
+                        <div class="card search-card" v-show="search.isSearchVisible">
+                            <router-link :to="{name: 'postView', params: {slug: post.slug} }" @click="search.isSearchVisible = false, search.searchValue = '' "  v-for="post in myposts" :key="post.id">
                                 <article class="card-body">
                                         <div class="search-res-image">
                                         <img :src="post.image" width="80" alt="">
@@ -35,7 +35,7 @@
                                     
                                 </article>
                             </router-link>
-                            <article class="card-body other-results" v-show="otherResults">
+                            <article class="card-body other-results" v-show="search.otherResults">
                                 <a href="" class="d-flex">
                                     <h6>
                                     <i class="pi-search pi"></i>
@@ -67,10 +67,21 @@
 
                         <ul class="d-flex ul-icons">
                             <li v-for="(item, index) in navIconItems" :key="index">
-                                <a href="" >
-                                    <i :class="item.class" class=" icon-menu" ></i>
-                                    {{ item.name }}
-                                </a>
+                                <template v-if="!item.vue">
+                                    <a href="" >
+                                        <i :class="item.class"   class=" icon-menu" ></i>
+                                        {{ item.name }}
+                                    </a>
+                                </template>
+                                 <template v-else>
+                                    <a href="#" v-if="IsUser">
+                                        <i :class="item.class"   class=" icon-menu" ></i> {{ userInfo.username }}
+                                    </a>
+                                    <a href="#" @click="changeLoginStatus" v-else>
+                                    <i :class="item.class"   class=" icon-menu" ></i>
+                                        {{ item.name }}
+                                    </a>
+                                </template>
                             </li>
                         </ul>
                     </li>
@@ -84,6 +95,7 @@
 <script>
 import axios from 'axios'
 import InputText from 'primevue/inputtext';
+import { mapGetters, mapMutations } from 'vuex'
 
 export default {
     name: 'NavBar',
@@ -94,11 +106,18 @@ export default {
     data() {
         return {
             isDropdownVisible: false,
-            isSearchVisible: false,
-            value: '',
-            searchValue: '',
             myposts: [],
-            otherResults: false,
+
+            user: {
+                LoginView: false,
+            },
+            search: {
+                value: '',
+                isSearchVisible: false,
+                searchValue: '',
+                otherResults: false,
+            },
+            
             navDefaultItems: [
                 {
                     label: 'Bosh sahifa',
@@ -118,12 +137,14 @@ export default {
                 {
                     class: 'pi-pencil pi',
                     to: '/',
-                    name: 'Post yozish'
+                    name: 'Post yozish',
+                    vue: false
                 }, 
                 {
                     class: 'pi pi-user',
                     name: 'Kirish',
-                    to: '/'
+                    to: '/',
+                    vue: true
                 },
             ],
             navLanguages: []
@@ -131,40 +152,59 @@ export default {
     },
     mounted() {
         this.getCategories()
+        let userToken =  localStorage.getItem('userToken')
+
+        if (userToken) {
+            this.isUserSet(true)
+        } else {
+            this.isUserSet(false)
+        }
     },
     methods: {
-       async getCategories() {
-           try{
-               const res = await axios.get('http://localhost:8000/api/v1/languages/');
-               this.navLanguages = res.data;
-           } catch(error) {
-               console.error(error);
-           }
-
-       },
-       refreshWindow() {
-           if (window.location == 'http://localhost:8080/') {
-                window.location.reload();
-           }
-           
+        ...mapMutations({
+            isUserSet: 'SET_IS_USER'
+        }),
+        changeLoginStatus() {
+            this.$store.state.loginStatus = true
         },
-        searchFunc() {
-            if (this.searchValue.length >= 1) {
-                this.isSearchVisible = true
-            } else {
-                this.isSearchVisible = false
+        async getCategories() {
+            try{
+                const res = await axios.get('http://localhost:8000/api/v1/languages/');
+                this.navLanguages = res.data;
+            } catch(error) {
+                console.error(error);
             }
-            this.myposts = this.posts.filter(post => {
-                return post.title.toLowerCase().includes(this.searchValue) || post.content.toLowerCase().includes(this.searchValue)
-            })
-            if (this.myposts.length > 3) {
-                this.otherResults = true
-            } else {
-                this.otherResults = false
-            }
-        }
 
+        },
+        refreshWindow() {
+            if (window.location == 'http://localhost:8080/') {
+                    window.location.reload();
+            }
+            
+            },
+            searchFunc() {
+                if (this.search.searchValue.length >= 1) {
+                    this.search.isSearchVisible = true
+                } else {
+                    this.search.isSearchVisible = false
+                }
+                this.myposts = this.posts.filter(post => {
+                    return post.title.toLowerCase().includes(this.search.searchValue) || post.content.toLowerCase().includes(this.search.searchValue)
+                })
+                if (this.myposts.length > 3) {
+                    this.search.otherResults = true
+                } else {
+                    this.search.otherResults = false
+                }
+            }
+    },
+    computed: {
+        ...mapGetters({
+            userInfo: 'getUserInfo',
+            IsUser: 'getIsUser'
+        }),
     }
+
 }
 </script>
 

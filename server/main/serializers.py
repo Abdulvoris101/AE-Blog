@@ -69,7 +69,6 @@ class UserSerializer(ModelSerializer):
         fields = ['id', 'username', 'posts', 'first_name', 'email', 'password', 'userlikes']
         read_only_fields = ('id', 'posts')
         write_only_fields = ('password', )
-        extra_kwargs = {'first_name': {'required': True}} 
         extra_kwargs = {'email': {'required': True}} 
 
     
@@ -77,7 +76,6 @@ class UserSerializer(ModelSerializer):
         user = User.objects.create(
             username=validated_data['username'],
             email=validated_data['email'],
-            first_name=validated_data['first_name'],
         )
 
         user.set_password(validated_data['password'])

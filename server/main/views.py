@@ -11,6 +11,7 @@ from rest_framework import permissions, authentication
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.db.models import Count, Q
+from rest_framework.authtoken.models import Token
 
 
 class PostListView(ListCreateAPIView):
@@ -97,37 +98,28 @@ class LikePostView(APIView):
 
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
-        try:
-            get_like = Like.objects.get(post=post)
+        token = str(request.headers.get('Authorization'))
+        token = token.replace('Token', '').strip()
 
-            if get_like.status == 'Like':
-                get_like.status = 'UnLike'
+        user = get_object_or_404(Token, key=token).user
+        
+        is_like = Like.objects.filter(user=user, post=post).exists()
+        
+        if user:
+            if is_like:
+                like = Like.objects.get(user=user, post=post)
 
-                get_like.save()
+                if like.status == 'Like':
+                    like.status = 'UnLike'
+                    
+                else:
+                    like.status = 'Like'
+                
+                like.save()
+            else:
+                like = Like.objects.create(user=user, status='Like', post=post)
 
-                return Response({
-                    'status': 'UnLike',
-                    'post_id': post.title
-                })
-
-            get_like.status = 'Like'
-
-            get_like.save()
-
-            return Response({
-                'status': 'Like',
-                'post_id': post.title
-            })
-
-            
-
-        except Like.DoesNotExist:
-            like = Like.objects.create(user=request.user, post=post, status='Like')
-
-        return Response({
-            'status': 'Like',
-            'post_id': post.title
-        })
+        return Response({'liked': True, 'status': like.status})
 
     
 class ThemeListView(APIView):

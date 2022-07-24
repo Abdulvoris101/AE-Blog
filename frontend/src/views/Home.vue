@@ -1,85 +1,96 @@
 <template>
-    <div id="home">
-        <LoginView />
-        <div class="post-filter mb-3">
-            <div class="left-filter-items">
+    
+    <div id="home" >
+        <div class="login-bg" v-if="getLoginSt" @click="this.$store.state.loginStatus = false, this.$store.state.registerStatus = false"></div>
+        <div class="register-bg" v-if="getRegisterSt" @click="this.$store.state.registerStatus = false, this.$store.state.registerStatus = false"></div>
 
-                <Button label="Filter" @click="postFilters" :class="{ 'btn-is-active' : activeFilter}" class="p-button-secondary btn-filter" icon="pi pi-filter" iconPos="left"  />
-               
-                <PrimeCard class="card-filter" :class="{'is-filter-active': activeFilter}">
-                    <template #title >
-                        <div class="filter-header">
-                            Filter Posts
-                            <button @click="applyFilter" v-if="activeApply" class=" button-filter-header">Apply</button>
-                            <button @click="applyFilter" v-else class="button-filter-header button-filter-disabled" disabled>Apply</button>
-                        </div>
-                    </template>
-                    <template #content class="primecard-content">
-                        <div class="programming-langs">
-                            <h6 class="d-flex sub-filter-title">
-                                <span class="material-icons code-icon">
-                                    code
-                                </span>
-                                Programming languages
-                            </h6>
-                            <button class="filterbtn" v-for="(language, index) in languages" :data-id="language.id" :data-slug="language.slug" :ref="'btn' + index" :key="language.id" @click="langToFilter(index)"> {{ language.name }}</button>
-                        </div>
-                        <div class="themes">
-                            <h6 class="sub-filter-title">
-                                 <span class="material-icons">
-                                    book
-                                </span>
-                                Themes
-                               
-                            </h6>
-                            <button class="filterbtn filterThemeBtn" v-for="(theme, index) in themes" :data-id="theme.id" :data-slug="theme.slug" :ref="'theme' + index" :key="theme.id" @click="themeToFilter(index)"> {{ theme.name }}</button>
-                        </div>
-                    </template>
-                </PrimeCard>
+        
+        <div class="container">
+            <LoginView v-show="getLoginSt" />
+            <RegisterView v-show="getRegisterSt"  />
+            
 
+            <div class="post-filter mb-3 mt-3">
+                <div class="left-filter-items">
 
-               <div class="ordering-filter ">
-                    <button @click="changeActivity(1)"
-                    class="new-posts-btn " 
-                    :class="{ 'btn-is-active' : activeBtn == 1 }"
-                    >
-                    <span>
-                        <i class="pi-clock pi"></i>
-                    </span>
-                    <span class="pb-1">
-                        Yangilari
-                    </span>
-                    </button>
-                    <button @click="changeActivity(2)" 
-                    class="popular-posts-btn" :class="{ 'btn-is-active' : activeBtn == 2 }">
-                    <span>
-                        <i class="pi-bolt pi"></i>
-                    </span>
-                    Mashhurlari
-                    
-                    </button>
-               </div>
-            </div>
-        </div>
-        <Spinner v-show="showSpinner" />
-            <div class="grid" v-if="showPost"> 
-            <div class="col-6 col-sm-12" v-for="post in filteredPosts" :key="post.id">
+                    <Button label="Filter" @click="postFilters" :class="{ 'btn-is-active' : obj_filter.activeFilter}" class="p-button-secondary btn-filter" icon="pi pi-filter" iconPos="left"  />  
                 
-                <Card 
-                :title="post.title" 
-                :content="post.content" 
-                :date="post.created_at" 
-                :author="post.author"
-                :get_thumbnail="post.get_thumbnail"
-                :slug="post.slug"
-                :id="post.id"
-                :likes="post.likes"
-                :getPosts="getPosts"
-                />
+                    <PrimeCard class="card-filter" :class="{'is-filter-active': obj_filter.activeFilter}">
+                        <template #title >
+                            <div class="filter-header">
+                                Filter Posts
+                                <button @click="applyFilter" v-if="obj_filter.activeApply" class=" button-filter-header">Apply</button>
+                                <button @click="applyFilter" v-else class="button-filter-header button-filter-disabled" disabled>Apply</button>
+                            </div>
+                        </template>
+                        <template #content class="primecard-content">
+                            <div class="programming-langs">
+                                <h6 class="d-flex sub-filter-title">
+                                    <span class="material-icons code-icon">
+                                        code
+                                    </span>
+                                    Programming languages
+                                </h6>
+                                <button class="filterbtn" v-for="(language, index) in obj_filter.languages" :data-id="language.id" :data-slug="language.slug" :ref="'btn' + index" :key="language.id" @click="langToFilter(index)"> {{ language.name }}</button>
+                            </div>
+                            <div class="themes">
+                                <h6 class="sub-filter-title">
+                                    <span class="material-icons">
+                                        book
+                                    </span>
+                                    Themes
+                                
+                                </h6>
+                                <button class="filterbtn filterThemeBtn" v-for="(theme, index) in obj_filter.themes" :data-id="theme.id" :data-slug="theme.slug" :ref="'theme' + index" :key="theme.id" @click="themeToFilter(index)"> {{ theme.name }}</button>
+                            </div>
+                        </template>
+                    </PrimeCard>
+
+
+                <div class="ordering-filter ">
+                        <button @click="changeActivity(1)"
+                        class="new-posts-btn " 
+                        :class="{ 'btn-is-active' : activeBtn == 1 }"
+                        >
+                        <span>
+                            <i class="pi-clock pi"></i>
+                        </span>
+                        <span class="pb-1">
+                            Yangilari
+                        </span>
+                        </button>
+                        <button @click="changeActivity(2)" 
+                        class="popular-posts-btn" :class="{ 'btn-is-active' : activeBtn == 2 }">
+                        <span>
+                            <i class="pi-bolt pi"></i>
+                        </span>
+                        Mashhurlari
+                        
+                        </button>
+                </div>
+                </div>
             </div>
-         </div>
-        <div v-else>
-            <h2 class="text-white text-center">Sorry, No Posts.. </h2>
+            <Spinner v-show="showSpinner" />
+                <div class="grid" v-if="obj_posts.showPost"> 
+                <div class="col-6 col-sm-12" v-for="post in obj_posts.filteredPosts" :key="post.id">
+                    
+                    <Card 
+                    :title="post.title" 
+                    :content="post.content" 
+                    :date="post.created_at" 
+                    :author="post.author"
+                    :get_thumbnail="post.get_thumbnail"
+                    :slug="post.slug"
+                    :id="post.id"
+                    :likes="post.likes"
+                    :getPosts="getPosts"
+                    />
+                    
+                </div>
+            </div>
+            <div v-else>
+                <h2 class="text-white text-center">Sorry, No Posts.. </h2>
+            </div>
         </div>
     </div>
 </template>
@@ -92,6 +103,9 @@ import Card from '../components/Card'
 import PrimeCard from 'primevue/card';
 import Spinner from '../components/Spinner';
 import LoginView from '../components/LoginView'
+import RegisterView from '../components/RegisterView'
+import { mapGetters } from 'vuex'
+
 
 export default {
     name: 'Home',
@@ -100,34 +114,46 @@ export default {
         Button,
         PrimeCard,
         Spinner,
-        LoginView
+        RegisterView,
+        LoginView,
     },
     data() {
         return {
-            posts: [],
             activeBtn: 1,
-            filteredPosts: [],
-            activeFilter: false,
-            languages: [],
-            filterLang: [],
-            filterTheme: [],
-            themes: [],
-            activeApply: false,
             showSpinner: true,
-            showPost: true,
+            obj_posts: {
+                posts: [],
+                filteredPosts: [],
+                showPost: true,
+            },
+            obj_filter: {
+                activeFilter: false,
+                languages: [],
+                filterLang: [],
+                filterTheme: [],
+                themes: [],
+                activeApply: false,
+            },
+            
         }
     },
     created() {
         this.getPosts()
         this.getLangs()
         this.getThemes()
+
+        
+    },
+    mounted() {
+        this.$store.dispatch('get_user_info')
+
     },
     methods: {
         async getPosts() {
             try{
                 const res = await axios.get('http://localhost:8000/api/v1/posts/');
-                this.posts = res.data;
-                this.filteredPosts = res.data;
+                this.obj_posts.posts = res.data;
+                this.obj_posts.filteredPosts = res.data;
 
             } catch(error) {
                 console.log(error);
@@ -137,7 +163,7 @@ export default {
         async getLangs() {
             try {
                 const res = await axios.get('http://localhost:8000/api/v1/languages/');
-                this.languages = res.data;
+                this.obj_filter.languages = res.data;
             } catch (error) {
                 console.log(error)
             }
@@ -145,7 +171,7 @@ export default {
         async getThemes() {
             try {
                 const res = await axios.get('http://localhost:8000/api/v1/themes/');
-                this.themes = res.data;
+                this.obj_filter.themes = res.data;
             } catch (error) {
                 console.log(error)
             }
@@ -153,8 +179,8 @@ export default {
         async get_order_by(ordering) {
             try{
                 const res = await axios.get(`http://localhost:8000/api/v1/posts/?order_by=${ordering}`)
-                this.posts = res.data;
-                this.filteredPosts = res.data;
+                this.obj_posts.posts = res.data;
+                this.obj_posts.filteredPosts = res.data;
 
             } catch(error) {
                 console.log(error)
@@ -170,31 +196,31 @@ export default {
                 this.activeBtn = 1
                 this.get_order_by('-created_at')
            }
-        },
+        },  
 
         postFilters() {
-            this.activeFilter = !this.activeFilter
+            this.obj_filter.activeFilter = !this.obj_filter.activeFilter
         },
         langToFilter(id) {
             let item = this.$refs['btn' + id][0]
 
             if ('filterbtn filterbtn-is-active' == item.classList.value) {
                 item.classList.value = 'filterbtn'
-                this.filterLang = this.filterLang.filter(e => e !== item.dataset.slug)
+                this.obj_filter.filterLang = this.obj_filter.filterLang.filter(e => e !== item.dataset.slug)
 
             } else {
                 item.classList.value += ' filterbtn-is-active'
-                this.activeApply = true
-                this.filterLang.push(item.dataset.slug)
+                this.obj_filter.activeApply = true
+                this.obj_filter.filterLang.push(item.dataset.slug)
             }
             this.activeLang = !this.activeLang
         },
         
         haveSomePosts() {
-            if (this.filteredPosts.length < 1) {
-                this.showPost = false
+            if (this.obj_posts.filteredPosts.length < 1) {
+                this.obj_posts.showPost = false
             } else {
-                this.showPost = true
+                this.obj_posts.showPost = true
             }
         },
         themeToFilter(id) {
@@ -202,49 +228,49 @@ export default {
 
             if ('filterbtn filterThemeBtn filterbtn-is-active' == item.classList.value) {
                 item.classList.value = 'filterbtn filterThemeBtn'
-                this.filterTheme = this.filterTheme.filter(e => e !== item.dataset.slug)
+                this.obj_filter.filterTheme = this.obj_filter.filterTheme.filter(e => e !== item.dataset.slug)
             } else {
                 item.classList.value += ' filterbtn-is-active'
-                this.activeApply = true
-                this.filterTheme.push(item.dataset.slug)
+                this.obj_filter.activeApply = true
+                this.obj_filter.filterTheme.push(item.dataset.slug)
             }
             this.activeLang = !this.activeLang
         },
         applyFilter() {
-            if (this.filterLang.length >= 1) {
-                if (this.filterTheme.length >= 1) {
-                    axios.get(`http://localhost:8000/api/v1/posts?theme=${this.filterTheme.toString()}&language=${this.filterLang.toString()}`)
+            if (this.obj_filter.filterLang.length >= 1) {
+                if (this.obj_filter.filterTheme.length >= 1) {
+                    axios.get(`http://localhost:8000/api/v1/posts?theme=${this.obj_filter.filterTheme.toString()}&language=${this.obj_filter.filterLang.toString()}`)
                     .then(response => {
-                        this.filteredPosts = response.data;
+                        this.obj_posts.filteredPosts = response.data;
                         this.haveSomePosts()
                         
                         setTimeout(() => {
-                            this.activeFilter = false
+                            this.obj_filter.activeFilter = false
                         }, 50)
                     })
                     .catch(error => {
                         console.log(error);
                     })
                 } else {
-                    axios.get(`http://localhost:8000/api/v1/posts?language=${this.filterLang.toString()}`)
+                    axios.get(`http://localhost:8000/api/v1/posts?language=${this.obj_filter.filterLang.toString()}`)
                     .then(response => {
-                        this.filteredPosts = response.data
+                        this.obj_posts.filteredPosts = response.data
                         this.haveSomePosts()
                         setTimeout(() => {
-                            this.activeFilter = false
+                            this.obj_filter.activeFilter = false
                         }, 50)
                     })
                     .catch(error => {
                         console.log(error);
                     })
                 }
-            } else if (this.filterTheme.length >= 1) {
-                    axios.get(`http://localhost:8000/api/v1/posts?theme=${this.filterTheme.toString()}`)
+            } else if (this.obj_filter.filterTheme.length >= 1) {
+                    axios.get(`http://localhost:8000/api/v1/posts?theme=${this.obj_filter.filterTheme.toString()}`)
                     .then(response => {
-                        this.filteredPosts = response.data
+                        this.obj_posts.filteredPosts = response.data
                         this.haveSomePosts()
                         setTimeout(() => {
-                            this.activeFilter = false
+                            this.obj_filter.activeFilter = false
                         }, 50)
                     })
                     .catch(error => {
@@ -256,12 +282,16 @@ export default {
         } 
 
     },
+    computed: {
+        ...mapGetters({
+            getLoginSt: 'getLoginStatus',
+            getRegisterSt: 'getRegisterStatus'
+        })
+    },  
     watch: {
-        filteredPosts: {
-            handler(val) {
-                if (val.length >= 1) {
-                    this.showSpinner = false
-                }
+        'obj_posts.filteredPosts': function (val)  {
+            if (val.length >= 1) {
+                this.showSpinner = false
             }
         }
     }
@@ -270,6 +300,7 @@ export default {
 </script>
 
 <style>
+    /* FIlter */
     .post-filter {
         display: flex;
         color:#fff;
@@ -435,5 +466,26 @@ export default {
         height: 100vh;
         position: absolute;
         background: red;
+    }
+
+    /* LoginView */
+    .overflow-yhidden {
+        overflow-y: hidden;
+    }
+    .login-bg {
+        position: absolute;
+        top: 5px;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.39);
+        width: 100%;
+        height: 100%;
+    }
+    .register-bg {
+        position: absolute;
+        top: 5px;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.39);
+        width: 100%;
+        height: 100%;
     }
 </style>

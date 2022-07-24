@@ -20,7 +20,7 @@
                 
                         
                 <div class="card-reactions">
-                    <a  href="#" @click="SubmitLike(id)" :id="id" class="like-btn">
+                    <a  href="#" @click="SubmitLike(id)" v-if="IsUser" :id="id" class="like-btn">
                         
                         <span class="material-icons" :ref="'like' + id" >
                             thumb_up_off_alt
@@ -32,6 +32,17 @@
                             </span>
                         </span>
                     </a>   
+                    <a href="#" @click="this.$store.state.loginStatus = true" class="like-btn" v-else>
+                         <span class="material-icons" >
+                            thumb_up_off_alt
+                        </span>
+
+                        <span class="mt-1" >
+                            <span>
+                                {{ likesFiltered.length }}
+                            </span>
+                        </span>
+                    </a>
                     <a href="" class="like-btn comment-btn">
                         <span class="material-icons">
                             forum 
@@ -52,23 +63,27 @@
 
 <script>
 import axios from 'axios'
+import { mapGetters } from 'vuex'
 
 export default {
     name: 'Card',
     props: ['title', 'get_thumbnail', 'author', 'date', 'content', 'slug', 'id', 'likes', 'getPosts'],
-
+    
     data() {
         return {
             msg: 'hello',
             likesFiltered: [],
-            myuser: []
+            myuser: [],
+            userToken: ''
             
         }
     },
     created() {
+        this.userToken = localStorage.getItem('userToken')
+
         axios.get('http://127.0.0.1:8000/user/info/', {
             headers: {
-                Authorization: 'Token f9c1cad1e2b49d9b4ec41ca1107bfd67d0c7b090'
+                Authorization: `Token ${this.userToken}`
             }
         })
         .then(response => this.likedUser(response))
@@ -76,6 +91,11 @@ export default {
             console.log(error);
         })
 
+    },
+    computed: {
+        ...mapGetters({
+            IsUser: 'getIsUser'
+        }),
     },
     methods: {
         likedUser(myuser) {
@@ -103,10 +123,10 @@ export default {
             }
 
             let url = `http://127.0.0.1:8000/api/v1/like/${id}/`
-
+            console.log(this.userToken);
             axios.get(url, {
                 headers: {
-                  Authorization: 'Token f9c1cad1e2b49d9b4ec41ca1107bfd67d0c7b090'  
+                  Authorization: `Token ${this.userToken}`  
                 }
             })
             .then(response => console.log(response))
@@ -180,6 +200,10 @@ export default {
         margin-bottom: 4px;
     }
     .card-title {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
         font-size: 19px;
         a {
             color: #ffff;

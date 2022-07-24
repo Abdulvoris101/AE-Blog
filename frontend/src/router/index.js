@@ -12,7 +12,7 @@ const routes = [
       path: '/post/:slug',
       name: 'postView',
       component: PostView,
-  }
+  },
 ]
 
 const router = createRouter({
